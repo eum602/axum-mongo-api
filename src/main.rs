@@ -10,10 +10,18 @@ async fn main() {
         .route("/greetings", get(greet));
     Server::bind(&server_address)
         .serve(app.into_make_service())
+        .with_graceful_shutdown(signal_shutdown())
         .await
         .unwrap();
 }
 
 async fn greet() -> &'static str {
     "Hello world!"
+}
+
+async fn signal_shutdown() {
+    tokio::signal::ctrl_c()
+        .await
+        .expect("Expect ctrl - ctrl shutdown");
+    println!("Signal shutting down");
 }

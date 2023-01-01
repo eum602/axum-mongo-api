@@ -6,6 +6,7 @@
 cargo doc --no-deps --open --document-private-items
 cargo test
 cargo add axum
+cargo add dotenv
 ```
 
 ## Routes

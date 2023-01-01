@@ -1,3 +1,6 @@
+use dotenv::dotenv;
+use std::env;
+
 use axum::{
     http::{StatusCode, Uri},
     response::IntoResponse,
@@ -7,7 +10,11 @@ use axum::{
 
 #[tokio::main]
 async fn main() {
-    let server_address = ([127, 0, 0, 1], 8080).into();
+    dotenv().expect("Set your configuration in an .env file");
+
+    let message = "Define a SERVER=host:port pair in your .env file";
+    let server_address = env::var("SERVER").expect(&message);
+    let server_address = server_address.parse().expect(&message);
     println!("server_address: http://{:?}/", server_address);
     Server::bind(&server_address);
     let app = Router::new()

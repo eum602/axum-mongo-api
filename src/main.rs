@@ -2,10 +2,12 @@ use dotenv::dotenv;
 use std::{env, time::Duration};
 use tower::{timeout::TimeoutLayer, ServiceBuilder};
 use tower_http::trace::TraceLayer;
-use tracing::{error, info};
+use tracing::{debug, error, info};
+use uuid::Uuid;
 
 use axum::{
     error_handling::HandleErrorLayer,
+    extract::Path,
     http::{StatusCode, Uri},
     response::IntoResponse,
     routing::get,
@@ -26,6 +28,8 @@ async fn main() {
         .route("/", get(|| async { "Welcome to main page" }))
         .route("/greetings", get(greet))
         .route("/health", get(health))
+        .route("/orders", get(list_orders).post(create_order)) // handles gets and posts depenging of the method reaching the server
+        .route("/orders/:id", get(get_order))
         .layer(
             ServiceBuilder::new()
                 .layer(TraceLayer::new_for_http())
@@ -66,5 +70,20 @@ async fn fallback_handler(uri: Uri) -> impl IntoResponse {
 #[tracing::instrument]
 async fn health() -> StatusCode {
     info!("new incoming health check status request");
+    StatusCode::OK
+}
+
+async fn create_order() -> StatusCode {
+    debug!("Creating a new orders");
+    StatusCode::CREATED
+}
+
+async fn list_orders() -> StatusCode {
+    debug!("Listing all orders");
+    StatusCode::OK
+}
+
+async fn get_order(Path(id): Path<Uuid>) -> StatusCode {
+    debug!("Retrieving order with id: {id}");
     StatusCode::OK
 }

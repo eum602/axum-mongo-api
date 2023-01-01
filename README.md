@@ -29,6 +29,12 @@ curl -iX GET "http://127.0.0.1:8080/health" # -i to show headers
 
 - "/"
 - "/greetings"
+- ```sh
+  curl -iX POST "http://127.0.0.1:8080/orders/e90d2ec4-89ed-11ed-a1eb-0242ac120002/items"
+  ```
+- ```sh
+  curl -iX DELETE "http://127.0.0.1:8080/orders/e90d2ec4-89ed-11ed-a1eb-0242ac120002/items/1"
+  ```
 
 ## Notes
 

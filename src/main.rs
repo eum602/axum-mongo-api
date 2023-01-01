@@ -10,7 +10,7 @@ use axum::{
     extract::Path,
     http::{StatusCode, Uri},
     response::IntoResponse,
-    routing::get,
+    routing::{delete, get, post},
     BoxError, Router, Server,
 };
 
@@ -30,6 +30,8 @@ async fn main() {
         .route("/health", get(health))
         .route("/orders", get(list_orders).post(create_order)) // handles gets and posts depenging of the method reaching the server
         .route("/orders/:id", get(get_order))
+        .route("/orders/:id/items", post(add_item_to_order))
+        .route("/orders/:id/items/:index", delete(delete_item_from_order))
         .layer(
             ServiceBuilder::new()
                 .layer(TraceLayer::new_for_http())
@@ -85,5 +87,15 @@ async fn list_orders() -> StatusCode {
 
 async fn get_order(Path(id): Path<Uuid>) -> StatusCode {
     debug!("Retrieving order with id: {id}");
+    StatusCode::OK
+}
+
+async fn add_item_to_order(Path(id): Path<Uuid>) -> StatusCode {
+    debug!("Adding item to order with id: {id}");
+    StatusCode::OK
+}
+
+async fn delete_item_from_order(Path((id, index)): Path<(Uuid, usize)>) -> StatusCode {
+    debug!("Deleting item from order with id: {id}, index: {index}");
     StatusCode::OK
 }

@@ -1,4 +1,5 @@
 use dotenv::dotenv;
+use log::{error, info};
 use std::env;
 
 use axum::{
@@ -10,12 +11,13 @@ use axum::{
 
 #[tokio::main]
 async fn main() {
+    env_logger::init();
     dotenv().expect("Set your configuration in an .env file");
 
     let message = "Define a SERVER=host:port pair in your .env file";
     let server_address = env::var("SERVER").expect(&message);
     let server_address = server_address.parse().expect(&message);
-    println!("server_address: http://{:?}/", server_address);
+    info!("server_address: http://{:?}/", server_address);
     Server::bind(&server_address);
     let app = Router::new()
         .route("/", get(|| async { "Welcome to main page" }))
@@ -42,5 +44,6 @@ async fn signal_shutdown() {
 }
 
 async fn fallback_handler(uri: Uri) -> impl IntoResponse {
+    error!("No route found for uri: {}", uri);
     (StatusCode::NOT_FOUND, format!("No route found for {}", uri))
 }

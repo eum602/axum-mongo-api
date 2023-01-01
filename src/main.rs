@@ -1,7 +1,10 @@
 mod api;
+mod in_mem_order_store;
+mod order_store;
 use api::health;
 use dotenv::dotenv;
-use std::{env, time::Duration};
+use in_mem_order_store::InMemOrderStore;
+use std::{env, sync::Arc, time::Duration};
 use tower::{timeout::TimeoutLayer, ServiceBuilder};
 use tower_http::trace::TraceLayer;
 use tracing::{error, info};
@@ -11,7 +14,7 @@ use axum::{
     http::{StatusCode, Uri},
     response::IntoResponse,
     routing::{delete, get, post},
-    BoxError, Router, Server,
+    BoxError, Extension, Router, Server,
 };
 
 use crate::api::orders;
@@ -20,6 +23,11 @@ use crate::api::orders;
 async fn main() {
     tracing_subscriber::fmt::init();
     dotenv().expect("Set your configuration in an .env file");
+
+    // repository
+    let repo = InMemOrderStore::new();
+
+    let state = Arc::new(repo); // allowing repo to be avalable in muliple threads
 
     let message = "Define a SERVER=host:port pair in your .env file";
     let server_address = env::var("SERVER").expect(&message);
@@ -31,7 +39,8 @@ async fn main() {
         .route("/", get(orders::list).post(orders::create)) // handles gets and posts depenging of the method reaching the server
         .route("/:id", get(orders::get))
         .route("/:id/items", post(orders::add_item))
-        .route("/:id/items/:index", delete(orders::delete_item));
+        .route("/:id/items/:index", delete(orders::delete_item))
+        .layer(Extension(state));
     let app = Router::new()
         .route("/health", get(health::get))
         .nest("/orders", order_routes)

@@ -26,12 +26,15 @@ async fn main() {
     let server_address = server_address.parse().expect(&message);
     info!("server_address: http://{:?}/", server_address);
     Server::bind(&server_address);
+
+    let order_routes = Router::new()
+        .route("/", get(orders::list).post(orders::create)) // handles gets and posts depenging of the method reaching the server
+        .route("/:id", get(orders::get))
+        .route("/:id/items", post(orders::add_item))
+        .route("/:id/items/:index", delete(orders::delete_item));
     let app = Router::new()
         .route("/health", get(health::get))
-        .route("/orders", get(orders::list).post(orders::create)) // handles gets and posts depenging of the method reaching the server
-        .route("/orders/:id", get(orders::get))
-        .route("/orders/:id/items", post(orders::add_item))
-        .route("/orders/:id/items/:index", delete(orders::delete_item))
+        .nest("/orders", order_routes)
         .layer(
             ServiceBuilder::new()
                 .layer(TraceLayer::new_for_http())

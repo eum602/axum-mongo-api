@@ -18,6 +18,12 @@ cargo add -F  timeout tower &&  cargo add -F trace tower_http  # middlewares, ac
  RUST_LOG="debug,tower_http=trace" cargo run
 ```
 
+## Health Check
+
+```sh
+curl -iX GET "http://127.0.0.1:8080/health" # -i to show headers
+```
+
 ## Routes
 
 - "/"

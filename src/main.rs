@@ -25,6 +25,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(|| async { "Welcome to main page" }))
         .route("/greetings", get(greet))
+        .route("/health", get(health))
         .layer(
             ServiceBuilder::new()
                 .layer(TraceLayer::new_for_http())
@@ -43,7 +44,7 @@ async fn main() {
 }
 
 async fn greet() -> &'static str {
-    tokio::time::sleep(Duration::from_secs(8)).await;
+    // tokio::time::sleep(Duration::from_secs(8)).await;
     "Hello world!"
 }
 
@@ -59,4 +60,11 @@ async fn signal_shutdown() {
 async fn fallback_handler(uri: Uri) -> impl IntoResponse {
     error!("No route found for uri: {}", uri);
     (StatusCode::NOT_FOUND, format!("No route found for {}", uri))
+}
+
+/// health check
+#[tracing::instrument]
+async fn health() -> StatusCode {
+    info!("new incoming health check status request");
+    StatusCode::OK
 }

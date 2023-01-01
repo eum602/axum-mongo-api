@@ -1,5 +1,7 @@
 use dotenv::dotenv;
 use std::env;
+use tower::ServiceBuilder;
+use tower_http::trace::TraceLayer;
 use tracing::{error, info};
 
 use axum::{
@@ -22,6 +24,8 @@ async fn main() {
     let app = Router::new()
         .route("/", get(|| async { "Welcome to main page" }))
         .route("/greetings", get(greet))
+        .layer(ServiceBuilder::new())
+        .layer(TraceLayer::new_for_http())
         .fallback(fallback_handler);
 
     Server::bind(&server_address)

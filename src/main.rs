@@ -1,14 +1,15 @@
 use dotenv::dotenv;
-use std::env;
-use tower::ServiceBuilder;
+use std::{env, time::Duration};
+use tower::{timeout::TimeoutLayer, ServiceBuilder};
 use tower_http::trace::TraceLayer;
 use tracing::{error, info};
 
 use axum::{
+    error_handling::HandleErrorLayer,
     http::{StatusCode, Uri},
     response::IntoResponse,
     routing::get,
-    Router, Server,
+    BoxError, Router, Server,
 };
 
 #[tokio::main]
@@ -24,8 +25,14 @@ async fn main() {
     let app = Router::new()
         .route("/", get(|| async { "Welcome to main page" }))
         .route("/greetings", get(greet))
-        .layer(ServiceBuilder::new())
-        .layer(TraceLayer::new_for_http())
+        .layer(
+            ServiceBuilder::new()
+                .layer(TraceLayer::new_for_http())
+                .layer(HandleErrorLayer::new(|_: BoxError| async {
+                    StatusCode::REQUEST_TIMEOUT
+                }))
+                .layer(TimeoutLayer::new(Duration::from_secs(5))),
+        )
         .fallback(fallback_handler);
 
     Server::bind(&server_address)
@@ -36,6 +43,7 @@ async fn main() {
 }
 
 async fn greet() -> &'static str {
+    tokio::time::sleep(Duration::from_secs(8)).await;
     "Hello world!"
 }
 

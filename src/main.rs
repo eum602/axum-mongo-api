@@ -1,18 +1,20 @@
+mod api;
+use api::health;
 use dotenv::dotenv;
 use std::{env, time::Duration};
 use tower::{timeout::TimeoutLayer, ServiceBuilder};
 use tower_http::trace::TraceLayer;
-use tracing::{debug, error, info};
-use uuid::Uuid;
+use tracing::{error, info};
 
 use axum::{
     error_handling::HandleErrorLayer,
-    extract::Path,
     http::{StatusCode, Uri},
     response::IntoResponse,
     routing::{delete, get, post},
     BoxError, Router, Server,
 };
+
+use crate::api::orders;
 
 #[tokio::main]
 async fn main() {
@@ -25,13 +27,11 @@ async fn main() {
     info!("server_address: http://{:?}/", server_address);
     Server::bind(&server_address);
     let app = Router::new()
-        .route("/", get(|| async { "Welcome to main page" }))
-        .route("/greetings", get(greet))
-        .route("/health", get(health))
-        .route("/orders", get(list_orders).post(create_order)) // handles gets and posts depenging of the method reaching the server
-        .route("/orders/:id", get(get_order))
-        .route("/orders/:id/items", post(add_item_to_order))
-        .route("/orders/:id/items/:index", delete(delete_item_from_order))
+        .route("/health", get(health::get))
+        .route("/orders", get(orders::list).post(orders::create)) // handles gets and posts depenging of the method reaching the server
+        .route("/orders/:id", get(orders::get))
+        .route("/orders/:id/items", post(orders::add_item))
+        .route("/orders/:id/items/:index", delete(orders::delete_item))
         .layer(
             ServiceBuilder::new()
                 .layer(TraceLayer::new_for_http())
@@ -49,11 +49,6 @@ async fn main() {
         .unwrap();
 }
 
-async fn greet() -> &'static str {
-    // tokio::time::sleep(Duration::from_secs(8)).await;
-    "Hello world!"
-}
-
 /// shutdown handler
 async fn signal_shutdown() {
     tokio::signal::ctrl_c()
@@ -66,36 +61,4 @@ async fn signal_shutdown() {
 async fn fallback_handler(uri: Uri) -> impl IntoResponse {
     error!("No route found for uri: {}", uri);
     (StatusCode::NOT_FOUND, format!("No route found for {}", uri))
-}
-
-/// health check
-#[tracing::instrument]
-async fn health() -> StatusCode {
-    info!("new incoming health check status request");
-    StatusCode::OK
-}
-
-async fn create_order() -> StatusCode {
-    debug!("Creating a new orders");
-    StatusCode::CREATED
-}
-
-async fn list_orders() -> StatusCode {
-    debug!("Listing all orders");
-    StatusCode::OK
-}
-
-async fn get_order(Path(id): Path<Uuid>) -> StatusCode {
-    debug!("Retrieving order with id: {id}");
-    StatusCode::OK
-}
-
-async fn add_item_to_order(Path(id): Path<Uuid>) -> StatusCode {
-    debug!("Adding item to order with id: {id}");
-    StatusCode::OK
-}
-
-async fn delete_item_from_order(Path((id, index)): Path<(Uuid, usize)>) -> StatusCode {
-    debug!("Deleting item from order with id: {id}, index: {index}");
-    StatusCode::OK
 }

@@ -1,24 +1,29 @@
-use axum::{extract::Path, http::StatusCode};
+use axum::{extract::Path, http::StatusCode, Json};
 use tracing::debug;
 use uuid::Uuid;
 
-pub async fn create() -> StatusCode {
-    debug!("Creating a new orders");
-    StatusCode::CREATED
+use super::{request::AddItem, response::Order};
+
+pub async fn create() -> (StatusCode, Json<Option<Order>>) {
+    debug!("Creating a new order");
+    (StatusCode::CREATED, Json(None))
 }
 
-pub async fn list() -> StatusCode {
+pub async fn list() -> (StatusCode, Json<Option<Vec<Order>>>) {
     debug!("Listing all orders");
-    StatusCode::OK
+    (StatusCode::OK, Json(None))
 }
 
-pub async fn get(Path(id): Path<Uuid>) -> StatusCode {
+pub async fn get(Path(id): Path<Uuid>) -> (StatusCode, Json<Option<Order>>) {
     debug!("Retrieving order with id: {id}");
-    StatusCode::OK
+    (StatusCode::OK, Json(None))
 }
 
-pub async fn add_item(Path(id): Path<Uuid>) -> StatusCode {
-    debug!("Adding item to order with id: {id}");
+pub async fn add_item(Path(id): Path<Uuid>, Json(request): Json<AddItem>) -> StatusCode {
+    debug!(
+        "Adding item to order with id: {}, product Id: {} and quantity: {}",
+        id, request.product_id, request.quantity
+    );
     StatusCode::OK
 }
 

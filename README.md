@@ -11,6 +11,7 @@ cargo add env_logger log
 cargo add tracing tracing-subscriber # non blocking logging library
 cargo add -F  timeout tower &&  cargo add -F trace tower_http  # middlewares, activates default deactivated "timeout" for tower and "trace" for tower_http
 cargo add -F serde uuid #enable serde (serializable-deserializable) feature on installing uuid crate
+cargo add -F derive serde && cargo add serde_json
 ```
 
 ## Running
@@ -29,9 +30,13 @@ curl -iX GET "http://127.0.0.1:8080/health" # -i to show headers
 
 - "/"
 - "/greetings"
-- ```sh
-  curl -iX POST "http://127.0.0.1:8080/orders/e90d2ec4-89ed-11ed-a1eb-0242ac120002/items"
-  ```
+
+- Add item to order:
+
+```sh
+curl -iX POST -H "Content-Type: application/json" -d "{\"product_id\": \"e90d2ec4-89ed-11ed-a1eb-0242ac120002\", \"quantity\": 24}" "http://127.0.0.1:8080/orders/362e4ec4-89ed-11ed-a1eb-0242ac121235/items"
+```
+
 - ```sh
   curl -iX DELETE "http://127.0.0.1:8080/orders/e90d2ec4-89ed-11ed-a1eb-0242ac120002/items/1"
   ```

@@ -8,7 +8,13 @@ cargo test
 cargo add axum
 ```
 
+## Routes
+
+- "/"
+- "/greetings"
+
 ## Notes
 
 - gRPC -> Rust library -> Tonic
 - Axum: Part of Tokio Project
+- Copilot

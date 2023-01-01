@@ -8,6 +8,7 @@ cargo test
 cargo add axum
 cargo add dotenv
 cargo add env_logger log
+cargo add tracing tracing-subscriber    -> non blocking logging library
 ```
 
 ## Running

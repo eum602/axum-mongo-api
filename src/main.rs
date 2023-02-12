@@ -1,10 +1,10 @@
 mod api;
 mod in_mem_order_store;
+mod mongodb_order_store;
 mod order_store;
 use api::health;
 use dotenv::dotenv;
-use in_mem_order_store::InMemOrderStore;
-use std::{env, sync::Arc, time::Duration};
+use std::{env, error::Error, sync::Arc, time::Duration};
 use tower::{timeout::TimeoutLayer, ServiceBuilder};
 use tower_http::trace::TraceLayer;
 use tracing::{error, info};
@@ -17,15 +17,16 @@ use axum::{
     BoxError, Extension, Router, Server,
 };
 
-use crate::{api::orders, order_store::OrderStoreNewType};
+use crate::{api::orders, mongodb_order_store::MongodbOrderStore, order_store::OrderStoreNewType};
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn Error>> {
     tracing_subscriber::fmt::init();
     dotenv().expect("Set your configuration in an .env file");
 
+    let mongodb_uri = env::var("MONGODB_URI").expect("Define MONGODB_URI environment variable");
     // repository
-    let repo = InMemOrderStore::new();
+    let repo = MongodbOrderStore::new(&mongodb_uri).await?;
 
     let state = Arc::new(OrderStoreNewType::new(repo)); // allowing repo to be avalable in muliple threads
                                                         // 'Arc' to allow many copies
@@ -62,6 +63,7 @@ async fn main() {
         .with_graceful_shutdown(signal_shutdown())
         .await
         .unwrap();
+    Ok(())
 }
 
 /// shutdown handler

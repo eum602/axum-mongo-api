@@ -1,5 +1,6 @@
-use std::ops::Deref;
+use std::{error::Error, fmt::Display, ops::Deref};
 
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 pub struct OrderStoreNewType(pub Box<dyn OrderStore>); // //dyn: dynamic implementation of orderStore -> so not pegged to a specific implementation but
@@ -21,11 +22,10 @@ impl Deref for OrderStoreNewType {
     fn deref(&self) -> &Self::Target {
         self.0.as_ref() // wil return the reference of whatever is in the position '0'
     }
-    
 }
 
 /// Representation of an item of an order.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Item {
     /// Id of the product.
     pub product_id: Uuid,
@@ -34,7 +34,7 @@ pub struct Item {
 }
 
 /// Representation of an order in the system.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Order {
     /// An order is identified by its id.
     pub id: Uuid,
@@ -66,6 +66,24 @@ pub enum OrderStoreError {
     /// Provided item index is out of bounds for the provided order.
     ItemIndexOutOfBounds(usize),
 }
+
+impl Display for OrderStoreError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            OrderStoreError::StoreUnavailable => {
+                write!(f, "Store unavailable")
+            }
+            OrderStoreError::OrderNotFound(id) => {
+                write!(f, "Order not found {}", id)
+            }
+            OrderStoreError::ItemIndexOutOfBounds(index) => {
+                write!(f, "Item index out of bounds: {}", index)
+            }
+        }
+    }
+}
+
+impl Error for OrderStoreError {}
 
 /// A trait that defines the behavior of a type used to store orders.
 #[async_trait::async_trait]

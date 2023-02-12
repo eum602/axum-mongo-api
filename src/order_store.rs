@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use uuid::Uuid;
 
 pub struct OrderStoreNewType(pub Box<dyn OrderStore>); // //dyn: dynamic implementation of orderStore -> so not pegged to a specific implementation but
@@ -12,6 +14,14 @@ impl OrderStoreNewType {
         OrderStoreNewType(Box::new(repo)) // Box -> to put something in memory
                                           // repo -> the thing we are putting in memory
     }
+}
+
+impl Deref for OrderStoreNewType {
+    type Target = dyn OrderStore; // stating that what we are returning is of whatever type that implements OrderStore
+    fn deref(&self) -> &Self::Target {
+        self.0.as_ref() // wil return the reference of whatever is in the position '0'
+    }
+    
 }
 
 /// Representation of an item of an order.

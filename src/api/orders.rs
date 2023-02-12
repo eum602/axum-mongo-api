@@ -15,8 +15,9 @@ type State = Arc<OrderStoreNewType>;
 #[axum_macros::debug_handler] // adding this debugger just to exemplify debugging
 pub async fn create(Extension(state): Extension<State>) -> (StatusCode, Json<Option<Order>>) {
     debug!("Creating a new order");
-    if let Ok(order) = state.0.create_order(USER_ID).await {
-        // state.0 -> getting the element '0' from the 'Box'
+    if let Ok(order) = state.create_order(USER_ID).await {
+        // ommiting '.0' since we 'Deref' trait has been
+        // implementd for OrderStore
         (StatusCode::OK, Json(Some(Order::from(order))))
     } else {
         (StatusCode::FORBIDDEN, Json(None))

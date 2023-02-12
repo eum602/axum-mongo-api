@@ -1,9 +1,18 @@
 use uuid::Uuid;
 
-pub struct OrderStoreNewType(pub Box<dyn OrderStore>); // struct OrderStoreNewType(...) -> struct type tuple which means
+pub struct OrderStoreNewType(pub Box<dyn OrderStore>); // //dyn: dynamic implementation of orderStore -> so not pegged to a specific implementation but
+                                                       // to a generalization
+                                                       //struct OrderStoreNewType(...) -> struct type tuple which means
                                                        // that have values that are not referenced by name but by indexes inside the type.
                                                        // Box<dyn OrderStore> -> Means a 'Box' of something that implements the trait 'OrderStore'
                                                        // Box genereates like a pointer that points to the type inside (in this case 'dyn OrderStore')
+
+impl OrderStoreNewType {
+    pub fn new(repo: impl OrderStore) -> OrderStoreNewType {
+        OrderStoreNewType(Box::new(repo)) // Box -> to put something in memory
+                                          // repo -> the thing we are putting in memory
+    }
+}
 
 /// Representation of an item of an order.
 #[derive(Clone, Debug, PartialEq)]
@@ -50,7 +59,8 @@ pub enum OrderStoreError {
 
 /// A trait that defines the behavior of a type used to store orders.
 #[async_trait::async_trait]
-pub trait OrderStore: Send + Sync {
+pub trait OrderStore: Send + Sync + 'static {
+    // adding 'static' to avoid OrderStore to be deleted from memory before needed
     // adding 'Sync' and 'Send' since it is required by 'Arc'.
     /// Creates a new order associated to user `user_id`.
     ///

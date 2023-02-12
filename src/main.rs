@@ -27,12 +27,10 @@ async fn main() {
     // repository
     let repo = InMemOrderStore::new();
 
-    let state = Arc::new(OrderStoreNewType(Box::new(repo))); // allowing repo to be avalable in muliple threads
-                                                             // 'Arc' to allow many copies
-                                                             // OrderNewType -> just the type we defined
-                                                             // Box -> to put something in memory
-                                                             // repo -> the thing we are putting in memory
-                                                             // All this stuff just to use this in an abstract way rather that in a specific one.
+    let state = Arc::new(OrderStoreNewType::new(repo)); // allowing repo to be avalable in muliple threads
+                                                        // 'Arc' to allow many copies
+                                                        // OrderNewType -> just the type we defined
+                                                        // All this stuff just to use this in an abstract way rather that in a specific one.
 
     let message = "Define a SERVER=host:port pair in your .env file";
     let server_address = env::var("SERVER").expect(&message);

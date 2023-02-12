@@ -10,8 +10,6 @@ use super::{request::AddItem, response::Order};
 
 const USER_ID: Uuid = Uuid::from_u128(0xa1a2a3a4b1b2c1c2d1d2d3d4d5d6d7d8u128);
 
-// type State = Arc<dyn OrderStore + Sync + Send>; //dyn: dynamic implementation of orderStore -> so not pegged to a specific implementation but
-// to a generalization
 type State = Arc<OrderStoreNewType>;
 
 #[axum_macros::debug_handler] // adding this debugger just to exemplify debugging

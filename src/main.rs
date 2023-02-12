@@ -17,7 +17,7 @@ use axum::{
     BoxError, Extension, Router, Server,
 };
 
-use crate::api::orders;
+use crate::{api::orders, order_store::OrderStoreNewType};
 
 #[tokio::main]
 async fn main() {
@@ -27,7 +27,12 @@ async fn main() {
     // repository
     let repo = InMemOrderStore::new();
 
-    let state = Arc::new(repo); // allowing repo to be avalable in muliple threads
+    let state = Arc::new(OrderStoreNewType(Box::new(repo))); // allowing repo to be avalable in muliple threads
+                                                             // 'Arc' to allow many copies
+                                                             // OrderNewType -> just the type we defined
+                                                             // Box -> to put something in memory
+                                                             // repo -> the thing we are putting in memory
+                                                             // All this stuff just to use this in an abstract way rather that in a specific one.
 
     let message = "Define a SERVER=host:port pair in your .env file";
     let server_address = env::var("SERVER").expect(&message);
@@ -40,7 +45,7 @@ async fn main() {
         .route("/:id", get(orders::get))
         .route("/:id/items", post(orders::add_item))
         .route("/:id/items/:index", delete(orders::delete_item))
-        .layer(Extension(state));
+        .layer(Extension(state)); // Axum stores this in a dictionary key value where the key is the "type" of what is being stored in it.
     let app = Router::new()
         .route("/health", get(health::get))
         .nest("/orders", order_routes)

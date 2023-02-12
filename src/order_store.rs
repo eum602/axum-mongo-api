@@ -1,5 +1,10 @@
 use uuid::Uuid;
 
+pub struct OrderStoreNewType(pub Box<dyn OrderStore>); // struct OrderStoreNewType(...) -> struct type tuple which means
+                                                       // that have values that are not referenced by name but by indexes inside the type.
+                                                       // Box<dyn OrderStore> -> Means a 'Box' of something that implements the trait 'OrderStore'
+                                                       // Box genereates like a pointer that points to the type inside (in this case 'dyn OrderStore')
+
 /// Representation of an item of an order.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Item {
@@ -45,7 +50,8 @@ pub enum OrderStoreError {
 
 /// A trait that defines the behavior of a type used to store orders.
 #[async_trait::async_trait]
-pub trait OrderStore {
+pub trait OrderStore: Send + Sync {
+    // adding 'Sync' and 'Send' since it is required by 'Arc'.
     /// Creates a new order associated to user `user_id`.
     ///
     /// Returns a copy of the order on success, otherwise it returns an error.

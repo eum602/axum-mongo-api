@@ -26,10 +26,34 @@ cargo add -F derive serde && cargo add serde_json
 curl -iX GET "http://127.0.0.1:8080/health" # -i to show headers
 ```
 
+## Before Running
+
+- start a mongodb instance
+
+```sh
+cd mongodb
+docker compose up
+```
+
+- Create a database with name "examplemongo-ms"
+- Create a collection with name "orders"
+
 ## Routes
 
 - "/"
 - "/greetings"
+
+- Creating a new Order:
+
+```sh
+curl -iX POST "http://127.0.0.1:8080/orders"
+```
+
+Response:
+
+```sh
+{"id":"7abe5565-cb35-474a-bccf-6170f562e1a3","user_id":"a1a2a3a4-b1b2-c1c2-d1d2-d3d4d5d6d7d8","items":[]}
+```
 
 - Add item to order:
 
